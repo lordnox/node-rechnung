@@ -1,0 +1,23 @@
+{
+  "name": "node-rechnung",
+  "version": "0.0.2",
+  "description": "ERROR: No README.md file found!",
+  "main": "./dist/rechnung.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "",
+  "author": "",
+  "license": "BSD",
+  "dependencies": {
+    "buffertools": "1.1.x"
+  },
+  "devDependencies": {
+    "coffee-script": "~1.6.2",
+    "grunt": "~0.4.1",
+    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-jshint": "~0.6.4",
+    "grunt-contrib-watch": "~0.5.3"
+  }
+}

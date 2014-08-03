@@ -12,6 +12,10 @@ getConfiguration = (key) ->
   if key then config[key] else config
 
 rechnung = (data, settings, fn) ->
+  if(typeof settings is 'function')
+    fn        = settings
+    settings  = data.settings
+
   done    = false
   _out    = new buffertools.WritableBufferStream
   _err    = new buffertools.WritableBufferStream

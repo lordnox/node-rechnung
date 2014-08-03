@@ -52,7 +52,10 @@ namespace ThemedPDF {
     }
 
     function applyTheme($code) {
-      $theme = $this -> theme[$code];
+      $this -> apply($this -> theme[$code]);
+    }
+
+    function apply($theme) {
       foreach($theme AS $fn => $arg) {
         $this -> {$fn}($arg);
       }

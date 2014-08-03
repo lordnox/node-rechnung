@@ -22,7 +22,10 @@ getConfiguration = function(key) {
 
 rechnung = function(data, settings, fn) {
   var args, done, exe, finish, log, prog, start, _err, _out;
-
+  if (typeof settings === 'function') {
+    fn = settings;
+    settings = data.settings;
+  }
   done = false;
   _out = new buffertools.WritableBufferStream;
   _err = new buffertools.WritableBufferStream;

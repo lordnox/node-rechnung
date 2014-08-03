@@ -45,4 +45,6 @@ $rechnung = generatePDF($pdf, $options['data']);
 
 $rechnung -> output();
 
+#exit(1);
+
 #echo "Hello World!";#

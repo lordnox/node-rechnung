@@ -20,7 +20,27 @@ namespace Rechnungen {
       $this -> pdf -> Line(0, 105 + 43.5 + 43.5, 7, 105 + 43.5 + 43.5);
     }
 
-    function init() {
+    function init($settings) {
+      $this -> settings = $settings;
+      if(!array_key_exists('tablelayout', $this -> settings)) {
+        $this -> settings['tablelayout'] = array(
+          'datum' => array('Datum', 20, false),
+          'menge' => array('Menge/Einheit', 75, true),
+          'text'  => array('Leistung', 80, false),
+          'summe' => array('Preis (EURO)', 200, true, ['number'])
+        );
+      } else {
+        foreach($this -> settings['tablelayout'] AS $key => $layout) {
+          if(!array_key_exists(0, $layout)) $layout[0] = $key;
+          if(!array_key_exists(1, $layout)) throw new \Exception('Layout-Error!');
+          if(!array_key_exists(2, $layout)) $layout[2] = false;
+          if(!array_key_exists(3, $layout)) $layout[3] = $key;
+          if(!is_array($layout[3])) {
+            $layout[3] = array($layout[3]);
+          }
+          $this -> settings['tablelayout'][$key] = $layout;
+        }
+      }
       $this -> pdf -> fontpath = __DIR__ . '/fonts/';
       $this -> pdf -> AddFont('Ubuntu', '', 'Ubuntu-C.php');
       $this -> pdf -> AddFont('Ubuntu', 'B', 'Ubuntu-B.php');
@@ -34,7 +54,7 @@ namespace Rechnungen {
 
     function header() {
       $headertexts = array(
-        'Softwareentwicklung - Webdesign'
+        'Softwareentwicklung'
       , 'Tel.: 040 - 202 3797 1'
       , 'Tobias Kopelke'
       , 'Mobil: 0160 - 811 0460'
@@ -59,8 +79,8 @@ namespace Rechnungen {
       $this -> applyTheme('space');
       $this -> pdf -> Line(20, 280, 200, 280);
       $this -> applyTheme('footer');
-      $this -> Text(200, 282, 'Forbacher Strasse 9 | 22049 Hamburg | St.Nr.: 54/353/12022', true);
-      $this -> Text(200, 286, 'Sparda Bank Hamburg eG | Tobias Kopelke | Ktn.: 3504212 | BLZ.: 20690500', true);
+      $this -> Text(200, 282, 'Tobias Kopleke | Forbacher Strasse 9 | 22049 Hamburg | St.Nr.: 43/127/01796', true);
+      $this -> Text(200, 286, 'Sparda Bank Hamburg eG | BIC GEN0DEF1S11 | IBAN DE47 2069 0500 0003 5042 12 ', true);
     }
 
     function adresse(array $adresse) {
@@ -78,16 +98,47 @@ namespace Rechnungen {
       $this -> pdf -> Line(25, 44.4, 195, 44.4);
     }
 
+    function drawCell($y, $value, $element) {
+      if(array_key_exists(4, $element)) {
+        $theme = $element[4];
+        if(is_string($theme)) $this -> applyTheme($theme);
+        else $this -> apply($theme);
+      }
+
+      // get layout element-data
+      list($title, $pos, $orientation) = $element;
+      // check if this is the title row
+      if(is_null($value)) {
+        $value = $title;
+      } else {
+        if(array_key_exists(3, $element)) {
+          foreach ($element[3] as $mod) {
+            switch ($mod) {
+              case 'number': $value = number($value); break;
+            }
+          }
+        }
+      }
+
+      $this -> Text($pos, $y, $value, $orientation);
+
+      if(array_key_exists(5, $element)) {
+        $theme = $element[5];
+        if(is_string($theme)) $this -> applyTheme($theme);
+        else $this -> apply($theme);
+      }
+    }
+
     function tableCell($y, $einheit) {
-      $this -> Text(20,  $y, $einheit -> datum);
-      $this -> Text(75,  $y, $einheit -> menge, true);
-      $this -> Text(80,  $y, $einheit -> text);
-      $this -> Text(200, $y, $einheit -> preis, true);
+      foreach($this -> settings['tablelayout'] AS $key => $element) {
+        #echo $key . " " . $einheit -> $key; echo "\n";
+        $this -> drawCell($y, $einheit -> $key, $element);
+      }
       $y += $this -> pdf -> FontSize + 1;
       $this -> pdf -> Line(20, $y, 200, $y);
     }
 
-    function table($einheiten, $inklusive) {
+    function table($brutto, $steuer, $netto, $einheiten, $inklusive) {
       $this -> applyTheme('text');
       $this -> Text(20, 105, 'Für Ihren Auftrag bedanke ich mich und stelle folgende Leistungen in Rechnung:');
 
@@ -97,35 +148,20 @@ namespace Rechnungen {
       $ey   = $sy + $dy * count($einheiten) + $dy * 7 / 5;
       $y    = $ey + 2 * $dy + $pad;
 
-      $tableHeader = new \stdClass();
-      $tableHeader -> datum = 'Datum';
-      $tableHeader -> menge = 'Menge / Einheit';
-      $tableHeader -> text  = 'Leistung';
-      $tableHeader -> preis = 'Preis (EURO)';
-
       $this -> applyTheme('table');
 
-      $this -> tableCell($sy - $dy, $tableHeader);
+      $this -> tableCell($sy - $dy, null);
 
-      $summe = 0;
       foreach($einheiten AS $index => $einheit) {
-        $menge = $einheit -> menge;
-        if(gettype($menge) === 'number') {
-          $betrag = floor(($einheit -> menge * $einheit -> preis) * 100) / 100;
-        } else {
-          if(preg_match('/^(\d+):(\d+)$/', $menge, $matches)) {
-            list($_, $h, $m) = $matches;
-            $betrag = floor((($h + $m / 60) * $einheit -> preis) * 100) / 100;
-          } else {
-            $betrag = $einheit -> preis;
-          }
-        }
-        $summe  += $betrag;
-        $einheit -> preis = number($betrag);
         $this -> tableCell($sy + $index * $dy, $einheit);
       }
 
+      if(array_key_exists('tableFooter', $this -> settings)) {
+        $this -> drawCell($sy + count($einheiten) * $dy, null, $this -> settings['tableFooter']);
+      }
+
       $this -> applyTheme('table_extra');
+
 
       # Hier ändern wir das delta-y um mehr Zeilenabstand zu generieren um die Unterstriche zu ermöglichen
       $dy   = $dy * 6 / 5;
@@ -142,18 +178,13 @@ namespace Rechnungen {
 
       $this -> applyTheme('table');
 
-      if($inklusive) {
-        $this -> Text(200, $ey, number($summe / 1.19), true);
-        $this -> Text(200, $ey + $dy, number($summe / 1.19 * .19), true);
-        $this -> Text(200, $ey + 2 * $dy, number($summe), true);
-      } else {
-        $this -> Text(200, $ey, number($summe), true);
-        $this -> Text(200, $ey + $dy, number($summe * .19), true);
-        $this -> Text(200, $ey + 2 * $dy, number($summe * 1.19), true);
-      }
+      $this -> Text(200, $ey, number($netto), true);
+      $this -> Text(200, $ey + $dy, number($steuer), true);
+      $this -> Text(200, $ey + 2 * $dy, number($brutto), true);
 
       $this -> applyTheme('text');
       $this -> Text(20, $y, 'Bitte überweisen Sie den Rechnungsbetrag innerhalb von 10 Tagen auf das unten angegebene Konto.');
+      $this -> Text(20, $y + 8, 'Für die Umrechnung wurde der derzeitige Kurs von 106,25 CHF zu 87,37 EUR genommen.');
     }
   }
 }

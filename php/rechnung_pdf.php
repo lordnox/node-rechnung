@@ -80,7 +80,7 @@ namespace Rechnungen {
       $this -> pdf -> Line(20, 280, 200, 280);
       $this -> applyTheme('footer');
       $this -> Text(200, 282, 'Tobias Kopleke | Forbacher Strasse 9 | 22049 Hamburg | St.Nr.: 43/127/01796', true);
-      $this -> Text(200, 286, 'Sparda Bank Hamburg eG | BIC GEN0DEF1S11 | IBAN DE47 2069 0500 0003 5042 12 ', true);
+      $this -> Text(200, 286, 'Sparda Bank Hamburg eG | BIC GENODEF1S11 | IBAN DE47 2069 0500 0003 5042 12 ', true);
     }
 
     function adresse(array $adresse) {
@@ -184,7 +184,7 @@ namespace Rechnungen {
 
       $this -> applyTheme('text');
       $this -> Text(20, $y, 'Bitte überweisen Sie den Rechnungsbetrag innerhalb von 10 Tagen auf das unten angegebene Konto.');
-      $this -> Text(20, $y + 8, 'Für die Umrechnung wurde der derzeitige Kurs von 106,25 CHF zu 87,37 EUR genommen.');
+#      $this -> Text(20, $y + 8, 'Für die Leistung wurde eine Tagessatz von 700.50 EUR berechnet.');
     }
   }
 }

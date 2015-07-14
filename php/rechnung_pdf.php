@@ -79,7 +79,7 @@ namespace Rechnungen {
       $this -> applyTheme('space');
       $this -> pdf -> Line(20, 280, 200, 280);
       $this -> applyTheme('footer');
-      $this -> Text(200, 282, 'Tobias Kopleke | Forbacher Strasse 9 | 22049 Hamburg | St.Nr.: 43/127/01796', true);
+      $this -> Text(200, 282, 'Tobias Kopleke | Bartholomäusstrasse 18 | 22083 Hamburg | St.Nr.: 43/127/01796', true);
       $this -> Text(200, 286, 'Sparda Bank Hamburg eG | BIC GENODEF1S11 | IBAN DE47 2069 0500 0003 5042 12 ', true);
     }
 
